@@ -47,3 +47,25 @@ async def create_task(task: dict):
         "message": f"done, here's your receipt",
         "data": task,
     }
+
+@app.put("/tasks/{id}")
+async def update_task(id: int, task: dict):
+    if "title" not in task and "done" not in task:
+        raise HTTPException(status_code=400, detail="Task must have a title or done status")
+    for existing_task in tasks:
+        if existing_task["id"] == id:
+            existing_task.update(task)
+            return {
+                "message": f"Task {id} updated successfully",
+                "data": existing_task,
+            }
+    raise HTTPException(status_code=404, detail=f"Task {id} not found")
+
+
+@app.delete("/tasks/{id}")
+async def delete_task(id: int):
+    for task in tasks:
+        if task["id"] == id:
+            tasks.remove(task)
+            return {"message": f"Task {id} deleted successfully"}
+    raise HTTPException(status_code=404, detail=f"Task {id} not found")
