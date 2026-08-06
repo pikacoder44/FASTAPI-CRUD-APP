@@ -7,17 +7,13 @@
 # Installation
 1. Clone the repository:
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/pikacoder44/FASTAPI-CRUD-APP.git
    ```
-2. Navigate to the project directory:
-   ```bash
-   cd <project_directory>
-   ```
-3. Install the required dependencies:
+2. Install the required dependencies:
    ```bash
     pip install -r requirements.txt
     ```
-4. Run the FastAPI application:
+3. Run the FastAPI application:
    ```bash
    uvicorn main:app --reload
    ```
