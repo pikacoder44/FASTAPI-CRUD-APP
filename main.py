@@ -32,3 +32,18 @@ async def get_task_from_id(id: int):
         if task["id"] == id:
             return task
     raise HTTPException(status_code=404, detail=f"Task {id} not found")
+
+
+@app.post("/tasks", status_code=201)
+async def create_task(task: dict):
+    if "title" not in task:
+        raise HTTPException(status_code=400, detail="Task must have a title")
+    task_id = len(tasks) + 1
+    task["id"] = task_id
+    task["done"] = False
+    tasks.append(task)
+
+    return {
+        "message": f"done, here's your receipt",
+        "data": task,
+    }
