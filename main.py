@@ -93,17 +93,20 @@ async def get_task_from_id(id: int):
 
 @app.post("/tasks", status_code=201, description="Create a new task")
 async def create_task(task: dict):
-    if "title" not in task:
+    if "title" not in task or not task["title"].strip():
         raise HTTPException(status_code=400, detail="Task must have a title")
-    task_id = len(tasks) + 1
-    task["id"] = task_id
-    task["done"] = False
-    tasks.append(task)
+    db = get_db()
+    cursor = db.cursor()
 
-    return {
-        "message": f"done, here's your receipt",
-        "data": task,
-    }
+    cursor.execute("INSERT INTO tasks (title, done) VALUES (?, ?)", (task["title"], 0))
+
+    # Get the ID assigned by SQlite
+    task_id = cursor.lastrowid
+
+    db.commit()
+    db.close()
+
+    return {"id": task_id, "title": task["title"], "done": False}
 
 
 @app.put("/tasks/{id}", description="Update a task by its ID")
