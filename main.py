@@ -1,5 +1,5 @@
 import sqlite3
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 
 app = FastAPI()
 DATABASE = "tasks.db"
@@ -111,24 +111,72 @@ async def create_task(task: dict):
 
 @app.put("/tasks/{id}", description="Update a task by its ID")
 async def update_task(id: int, task: dict):
-    if "title" not in task and "done" not in task:
+    # Validate request body
+    if "title" not in task or "done" not in task:
         raise HTTPException(
-            status_code=400, detail="Task must have a title or done status"
+            status_code=400, detail="Task must have a title and done status"
         )
-    for existing_task in tasks:
-        if existing_task["id"] == id:
-            existing_task.update(task)
-            return {
-                "message": f"Task {id} updated successfully",
-                "data": existing_task,
-            }
-    raise HTTPException(status_code=404, detail=f"Task {id} not found")
+
+    # Validate title
+    if not isinstance(task["title"], str) or not task["title"].strip():
+        raise HTTPException(status_code=400, detail="Task must have a valid title")
+
+    # Validate done
+    if not isinstance(task["done"], bool):
+        raise HTTPException(status_code=400, detail="Done must be a boolean")
+
+    db = get_db()
+    cursor = db.cursor()
+
+    # Check whether task exists
+    cursor.execute("SELECT id FROM tasks WHERE id = ?", (id,))
+
+    existing_task = cursor.fetchone()
+
+    if existing_task is None:
+        db.close()
+        raise HTTPException(status_code=404, detail=f"Task {id} not found")
+
+    # Update task
+    cursor.execute(
+        "UPDATE tasks SET title = ?, done = ? WHERE id = ?",
+        (task["title"], task["done"], id),
+    )
+
+    db.commit()
+
+    # Get updated task
+    cursor.execute("SELECT id, title, done FROM tasks WHERE id = ?", (id,))
+
+    updated_task = cursor.fetchone()
+
+    db.close()
+
+    return {
+        "id": updated_task[0],
+        "title": updated_task[1],
+        "done": bool(updated_task[2]),
+    }
 
 
 @app.delete("/tasks/{id}", description="Delete a task by its ID")
 async def delete_task(id: int):
-    for task in tasks:
-        if task["id"] == id:
-            tasks.remove(task)
-            return {"message": f"Task {id} deleted successfully"}
-    raise HTTPException(status_code=404, detail=f"Task {id} not found")
+    db = get_db()
+    cursor = db.cursor()
+
+    # Check whether task exists
+    cursor.execute("SELECT id FROM tasks WHERE id = ?", (id,))
+
+    existing_task = cursor.fetchone()
+
+    if existing_task is None:
+        db.close()
+        raise HTTPException(status_code=404, detail=f"Task {id} not found")
+
+    # Delete task
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (id,))
+
+    db.commit()
+    db.close()
+
+    return Response(status_code=204)
