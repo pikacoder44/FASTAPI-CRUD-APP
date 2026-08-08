@@ -67,7 +67,7 @@ async def get_tasks():
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT id, title, done FROM tasks")
+    cursor.execute("SELECT * FROM tasks")
 
     tasks = cursor.fetchall()
 
@@ -78,10 +78,17 @@ async def get_tasks():
 
 @app.get("/tasks/{id}", description="Get a task by its ID")
 async def get_task_from_id(id: int):
-    for task in tasks:
-        if task["id"] == id:
-            return task
-    raise HTTPException(status_code=404, detail=f"Task {id} not found")
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    task = cursor.fetchone()
+
+    db.close()
+
+    if task:
+        return {"id": task[0], "title": task[1], "done": bool(task[2])}
+    raise HTTPException(status_code=404, detail={"error": "Task not found"})
 
 
 @app.post("/tasks", status_code=201, description="Create a new task")
