@@ -17,3 +17,27 @@
    ```bash
    uvicorn main:app --reload
    ```
+
+
+## Learn SQL by Hand
+
+For this task, I used **DB Browser for SQLite** to directly interact with the `tasks.db` database created by the FastAPI application.
+
+### SQL Query
+
+```sql
+UPDATE tasks SET done = 1;
+```
+
+### Result
+
+This query marked every task in the `tasks` table as completed. The change was immediately reflected in the FastAPI `GET /tasks` endpoint without restarting the server, confirming that both DB Browser and the API use the same SQLite database as the single source of truth.
+
+### Other Queries Tested
+
+```sql
+SELECT * FROM tasks;
+SELECT * FROM tasks WHERE done = 1;
+SELECT COUNT(*) FROM tasks;
+DELETE FROM tasks WHERE done = 1;
+```
