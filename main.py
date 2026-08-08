@@ -43,14 +43,6 @@ def init_db():
 
 init_db()
 
-tasks = [
-    {"id": 1, "title": "Task 1", "done": False},
-    {"id": 2, "title": "Task 2", "done": True},
-    {"id": 3, "title": "Task 3", "done": False},
-    {"id": 4, "title": "Task 4", "done": False},
-    {"id": 5, "title": "Task 5", "done": False},
-]
-
 
 @app.get("/", description="Root endpoint that provides basic information about the API")
 async def root():
